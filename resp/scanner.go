@@ -51,8 +51,11 @@ func (self *Scanner) parseBytes() (bail bool, again bool) {
 		var length int64
 		length, self.err = strconv.ParseInt(string(self.content()), 10, 64)
 		if self.err != nil {
-			bail = true
-			return true, false
+			// If the length value is an invalid format, we should assume it was a
+			// bogus identifier and keep going.
+			self.bytes = self.content()
+			self.err = nil
+			return self.parseBytes()
 		}
 		if length < 0 {
 			self.next = nil
@@ -76,7 +79,11 @@ func (self *Scanner) parseBytes() (bail bool, again bool) {
 		var length int64
 		length, self.err = strconv.ParseInt(string(self.content()), 10, 64)
 		if self.err != nil {
-			return true, false
+			// If the length value is an invalid format, we should assume it was a
+			// bogus identifier and keep going.
+			self.bytes = self.content()
+			self.err = nil
+			return self.parseBytes()
 		}
 		next := make([]interface{}, length)
 		for i := int64(0); i < length && self.Scan(); i++ {
